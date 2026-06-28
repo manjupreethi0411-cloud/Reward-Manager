@@ -1,0 +1,87 @@
+{% url 'frontend:dashboard' as url_dashboard %}
+{% url 'frontend:rewards_list' as url_rewards %}
+{% url 'frontend:reward_add' as url_add %}
+{% url 'frontend:rewards_expiring' as url_expiring %}
+{% url 'frontend:profile' as url_profile %}
+
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
+
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">🎁</div>
+    <div>
+      <div class="sidebar-logo-text">RewardManager</div>
+      <div class="sidebar-logo-sub">v1.0 · Your Rewards Hub</div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Main</div>
+
+    <a href="{{ url_dashboard }}"
+       class="nav-item {% if request.path == url_dashboard %}active{% endif %}"
+       id="nav-dashboard">
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+
+    <div class="sidebar-section-label">Rewards</div>
+
+    <a href="{{ url_rewards }}"
+       class="nav-item {% if request.path == url_rewards %}active{% endif %}"
+       id="nav-rewards">
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+      </svg>
+      My Rewards
+    </a>
+
+    <a href="{{ url_add }}"
+       class="nav-item {% if request.path == url_add %}active{% endif %}"
+       id="nav-add">
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Reward
+    </a>
+
+    <a href="{{ url_expiring }}"
+       class="nav-item {% if request.path == url_expiring %}active{% endif %}"
+       id="nav-expiring">
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Expiring Soon
+    </a>
+
+    <div class="sidebar-section-label">Account</div>
+
+    <a href="{{ url_profile }}"
+       class="nav-item {% if request.path == url_profile %}active{% endif %}"
+       id="nav-profile">
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+      </svg>
+      Profile
+    </a>
+
+  </nav>
+
+  <!-- Sidebar footer: logout -->
+  <div class="sidebar-footer">
+    <form method="post" action="{% url 'frontend:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="nav-item w-full" style="background:none;border:none;cursor:pointer;color:inherit;text-align:left;" id="nav-logout">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1"/>
+        </svg>
+        Sign Out
+      </button>
+    </form>
+  </div>
+
+</aside>

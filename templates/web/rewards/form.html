@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ form_title }} — Reward Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ form_title }}</h1>
+    <p>{% if is_edit %}Update the details of this reward.{% else %}Fill in the details to track a new reward.{% endif %}</p>
+  </div>
+  <a href="{% if is_edit %}{% url 'frontend:reward_detail' object.pk %}{% else %}{% url 'frontend:rewards_list' %}{% endif %}"
+     class="btn btn-secondary" id="form-back-btn">
+    ← Back
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post" novalidate id="rewardForm">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:24px" role="alert">
+        ❌ {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
+
+      <!-- Section: Basic Info -->
+      <div style="margin-bottom:28px">
+        <div class="section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Basic Information
+        </div>
+        <div class="form-grid">
+
+          <div class="form-group full-width">
+            <label for="{{ form.title.id_for_label }}" class="form-label">
+              Reward Title <span class="required">*</span>
+            </label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="form-error">{{ form.title.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.issuer_name.id_for_label }}" class="form-label">
+              Issuer / Brand <span class="required">*</span>
+            </label>
+            {{ form.issuer_name }}
+            {% if form.issuer_name.errors %}<div class="form-error">{{ form.issuer_name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.category.id_for_label }}" class="form-label">
+              Category <span class="required">*</span>
+            </label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="form-error">{{ form.category.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.reward_type.id_for_label }}" class="form-label">
+              Reward Type <span class="required">*</span>
+            </label>
+            {{ form.reward_type }}
+            {% if form.reward_type.errors %}<div class="form-error">{{ form.reward_type.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.status.id_for_label }}" class="form-label">Status</label>
+            {{ form.status }}
+            {% if form.status.errors %}<div class="form-error">{{ form.status.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group full-width">
+            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<div class="form-error">{{ form.description.errors|join:", " }}</div>{% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section: Value & Codes -->
+      <div style="margin-bottom:28px">
+        <div class="section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Value & Codes
+        </div>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="{{ form.value.id_for_label }}" class="form-label">Value (₹)</label>
+            {{ form.value }}
+            <span class="form-hint">Monetary value of the reward</span>
+            {% if form.value.errors %}<div class="form-error">{{ form.value.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.code.id_for_label }}" class="form-label">Reward Code</label>
+            {{ form.code }}
+            <span class="form-hint">Stored securely (encrypted)</span>
+            {% if form.code.errors %}<div class="form-error">{{ form.code.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.pin.id_for_label }}" class="form-label">PIN</label>
+            {{ form.pin }}
+            <span class="form-hint">Optional PIN (encrypted)</span>
+            {% if form.pin.errors %}<div class="form-error">{{ form.pin.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.url.id_for_label }}" class="form-label">Redemption URL</label>
+            {{ form.url }}
+            {% if form.url.errors %}<div class="form-error">{{ form.url.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.loyalty_program_name.id_for_label }}" class="form-label">Loyalty Program Name</label>
+            {{ form.loyalty_program_name }}
+            {% if form.loyalty_program_name.errors %}<div class="form-error">{{ form.loyalty_program_name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section: Dates -->
+      <div style="margin-bottom:28px">
+        <div class="section-title">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          Dates
+        </div>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="{{ form.issue_date.id_for_label }}" class="form-label">Issue Date</label>
+            {{ form.issue_date }}
+            {% if form.issue_date.errors %}<div class="form-error">{{ form.issue_date.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.expiry_date.id_for_label }}" class="form-label">Expiry Date & Time</label>
+            {% if is_edit and object.expiry_date %}
+            <input type="datetime-local" name="expiry_date" class="form-input"
+                   id="{{ form.expiry_date.id_for_label }}"
+                   data-value="{{ object.expiry_date|date:'c' }}"
+                   value="{{ object.expiry_date|date:'Y-m-d' }}T{{ object.expiry_date|date:'H:i' }}" />
+            {% else %}
+            {{ form.expiry_date }}
+            {% endif %}
+            {% if form.expiry_date.errors %}<div class="form-error">{{ form.expiry_date.errors|join:", " }}</div>{% endif %}
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Star option -->
+      <div style="margin-bottom:28px">
+        <div class="form-checkbox-wrap">
+          {{ form.is_starred }}
+          <label for="{{ form.is_starred.id_for_label }}" class="form-label" style="cursor:pointer">
+            ⭐ Star this reward (pin to top)
+          </label>
+        </div>
+        {% if form.is_starred.errors %}<div class="form-error">{{ form.is_starred.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="reward-form-submit">
+          {{ submit_label }}
+        </button>
+        <a href="{% if is_edit %}{% url 'frontend:reward_detail' object.pk %}{% else %}{% url 'frontend:rewards_list' %}{% endif %}"
+           class="btn btn-secondary" id="reward-form-cancel">Cancel</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

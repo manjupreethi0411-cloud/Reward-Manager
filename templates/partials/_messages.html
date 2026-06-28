@@ -1,0 +1,11 @@
+{% if messages %}
+<div class="messages-container" aria-live="polite">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }}" role="alert" id="alert-{{ forloop.counter }}">
+    {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+    {{ message }}
+    <button class="alert-close" aria-label="Dismiss" title="Dismiss">×</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

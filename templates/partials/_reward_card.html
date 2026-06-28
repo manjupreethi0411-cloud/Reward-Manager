@@ -1,0 +1,55 @@
+{% load static %}
+{% comment %}
+  Shared reward card partial.
+  Usage: {% include 'partials/_reward_card.html' with reward=reward %}
+{% endcomment %}
+
+<div class="reward-card" style="--reward-color:{% if reward.reward_type == 'CASHBACK' %}#10b981{% elif reward.reward_type == 'COUPON' %}#f59e0b{% elif reward.reward_type == 'GIFT_CARD' %}#8b5cf6{% elif reward.reward_type == 'LOYALTY_POINTS' %}#3b82f6{% else %}#ec4899{% endif %}">
+  <div class="reward-card-accent"></div>
+  <div class="reward-card-body">
+
+    <div class="reward-card-header">
+      <div>
+        <div class="reward-issuer">
+          {% if reward.reward_type == 'CASHBACK' %}💵
+          {% elif reward.reward_type == 'COUPON' %}🏷️
+          {% elif reward.reward_type == 'GIFT_CARD' %}🎁
+          {% elif reward.reward_type == 'LOYALTY_POINTS' %}⭐
+          {% else %}📱{% endif %}
+          {{ reward.issuer_name }}
+        </div>
+        <div class="reward-title">{{ reward.title }}</div>
+      </div>
+      {% if reward.is_starred %}
+      <span title="Starred" style="font-size:1.1rem;color:var(--warning)">⭐</span>
+      {% endif %}
+    </div>
+
+    {% if reward.value %}
+    <div class="reward-value">₹{{ reward.value }}</div>
+    {% endif %}
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge badge-{{ reward.status|lower }}">
+        {% if reward.status == 'ACTIVE' %}● Active
+        {% elif reward.status == 'USED' %}✓ Used
+        {% else %}✕ Expired{% endif %}
+      </span>
+      <span class="badge badge-{{ reward.reward_type|lower }}">{{ reward.get_reward_type_display }}</span>
+    </div>
+
+    {% if reward.expiry_date %}
+    <div style="font-size:0.78rem;color:var(--text-muted)">
+      Expires: <strong style="color:var(--text-secondary)">{{ reward.expiry_date|date:"d M Y" }}</strong>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="reward-card-footer">
+    <span style="font-size:0.78rem;color:var(--text-muted)">{{ reward.category.get_name_display }}</span>
+    <a href="{% url 'frontend:reward_detail' reward.pk %}" class="btn btn-secondary btn-sm" id="card-view-{{ reward.pk }}">
+      View →
+    </a>
+  </div>
+</div>

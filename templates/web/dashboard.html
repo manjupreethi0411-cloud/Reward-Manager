@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — Reward Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Good to see you, {{ request.user.first_name|default:"there" }} 👋</h1>
+    <p>Here's a snapshot of all your rewards.</p>
+  </div>
+  <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary" id="dash-add-btn">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
+    Add Reward
+  </a>
+</div>
+
+<!-- Stats cards -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-icon">🎁</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ total }}</div>
+      <div class="stat-label">Total Rewards</div>
+    </div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon">✅</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ active }}</div>
+      <div class="stat-label">Active</div>
+    </div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-icon">💰</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ used }}</div>
+      <div class="stat-label">Used</div>
+    </div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-icon">⌛</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ expired }}</div>
+      <div class="stat-label">Expired</div>
+    </div>
+  </div>
+  <div class="stat-card cyan">
+    <div class="stat-icon">⚡</div>
+    <div class="stat-body">
+      <div class="stat-value">{{ expiring_soon }}</div>
+      <div class="stat-label">Expiring in 7d</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main grid -->
+<div style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start" class="dash-grid">
+
+  <!-- Recent rewards -->
+  <div>
+    <div class="d-flex justify-between align-center mb-4">
+      <h2 class="section-title">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        Recent Rewards
+      </h2>
+      <a href="{% url 'frontend:rewards_list' %}" class="btn btn-secondary btn-sm">View all</a>
+    </div>
+
+    {% if recent_rewards %}
+    <div class="rewards-grid">
+      {% for reward in recent_rewards %}
+      {% include 'partials/_reward_card.html' with reward=reward %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎁</div>
+        <h3>No rewards yet</h3>
+        <p>Add your first reward to start tracking your savings.</p>
+        <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary" id="dash-empty-add-btn">Add First Reward</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right sidebar -->
+  <div style="display:flex;flex-direction:column;gap:20px">
+
+    <!-- Starred rewards -->
+    {% if starred %}
+    <div class="card">
+      <div class="card-header">
+        <h3>⭐ Starred Rewards</h3>
+        <a href="{% url 'frontend:rewards_list' %}?starred=1" class="btn btn-secondary btn-sm">See all</a>
+      </div>
+      <div class="card-body" style="padding:0">
+        {% for reward in starred %}
+        <a href="{% url 'frontend:reward_detail' reward.pk %}"
+           style="display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);transition:background var(--transition);"
+           class="dropdown-item" id="starred-{{ forloop.counter }}">
+          <span style="font-size:1.3rem">
+            {% if reward.reward_type == 'CASHBACK' %}💵
+            {% elif reward.reward_type == 'COUPON' %}🏷️
+            {% elif reward.reward_type == 'GIFT_CARD' %}🎁
+            {% elif reward.reward_type == 'LOYALTY_POINTS' %}⭐
+            {% else %}📱{% endif %}
+          </span>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:0.875rem;color:var(--text-primary)" class="truncate">{{ reward.title }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">{{ reward.issuer_name }}</div>
+          </div>
+          {% if reward.value %}
+          <div style="font-weight:700;color:var(--primary);font-size:0.9rem">₹{{ reward.value }}</div>
+          {% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Savings by category -->
+    {% if by_category %}
+    <div class="card">
+      <div class="card-header">
+        <h3>📊 By Category</h3>
+      </div>
+      <div class="card-body" style="padding:16px 20px">
+        {% for cat in by_category %}
+        <div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:0.82rem;font-weight:600;color:var(--text-primary)">{{ cat.category__name|title }}</span>
+            <span style="font-size:0.82rem;color:var(--text-muted)">{{ cat.count }} reward{{ cat.count|pluralize }}</span>
+          </div>
+          <div class="expiry-bar">
+            <div class="expiry-bar-fill" style="width:{% widthratio cat.count total 100 %}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick links -->
+    <div class="card">
+      <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+      <div class="card-body" style="display:flex;flex-direction:column;gap:8px;padding:16px 20px">
+        <a href="{% url 'frontend:rewards_expiring' %}" class="btn btn-secondary w-full" id="dash-expiring-btn">
+          ⏰ View Expiring Soon
+        </a>
+        <a href="{% url 'frontend:rewards_list' %}?status=ACTIVE" class="btn btn-secondary w-full" id="dash-active-btn">
+          ✅ Active Rewards
+        </a>
+        <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary w-full" id="dash-quick-add-btn">
+          ➕ Add New Reward
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

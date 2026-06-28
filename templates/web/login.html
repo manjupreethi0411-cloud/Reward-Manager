@@ -1,0 +1,106 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — Reward Manager</title>
+  <meta name="description" content="Sign in to Reward Manager to track your cashback, coupons, gift cards and loyalty rewards." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'css/main.css' %}" />
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Left panel -->
+  <div class="login-left" aria-hidden="true">
+    <div class="login-brand">
+      <div class="login-brand-icon">🎁</div>
+      <div>
+        <div class="login-brand-name">RewardManager</div>
+        <div class="login-brand-sub">Your rewards, all in one place</div>
+      </div>
+    </div>
+
+    <div class="login-hero-text">
+      <h1>Track every<br>reward you earn</h1>
+      <p>Never let a cashback, coupon, or gift card expire again. Manage all your rewards with one elegant dashboard.</p>
+    </div>
+
+    <div class="login-features">
+      <div class="login-feature">
+        <div class="login-feature-icon">💳</div>
+        Cashback & Gift Cards with encrypted codes
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">⏰</div>
+        Smart expiry alerts before rewards expire
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">📊</div>
+        Savings analytics across categories
+      </div>
+      <div class="login-feature">
+        <div class="login-feature-icon">⭐</div>
+        Star and organise your most valued rewards
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="login-right">
+    <div class="login-form-card">
+      <h2>Welcome back 👋</h2>
+      <p class="subtitle">Sign in to your Reward Manager account</p>
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" role="alert" style="margin-bottom:20px">
+        ❌ {{ form.non_field_errors|join:", " }}
+      </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'frontend:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" novalidate id="loginForm">
+        {% csrf_token %}
+
+        <div class="form-group-login">
+          <label for="id_email" class="form-label">Email Address</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+          <div class="form-error">{{ form.username.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group-login" style="margin-bottom:4px">
+          <label for="id_password" class="form-label">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+          <div class="form-error">{{ form.password.errors|join:", " }}</div>
+          {% endif %}
+        </div>
+
+        <div style="text-align:right;margin-bottom:20px">
+          <a href="{% url 'frontend:password_reset' %}" style="font-size:0.82rem;color:var(--primary);font-weight:500" id="forgot-password-link">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary login-submit" id="loginSubmitBtn">
+          Sign In
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+          </svg>
+        </button>
+      </form>
+
+      <p class="text-muted text-sm text-center mt-4">
+        Don't have an account?
+        <a href="{% url 'frontend:register' %}" class="font-medium" style="color:var(--primary);font-weight:600" id="create-account-link">Create Account →</a>
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile — Reward Manager{% endblock %}
+
+{% block content %}
+
+<!-- Profile hero -->
+<div class="profile-hero">
+  <div class="profile-avatar-large" aria-hidden="true">
+    {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+  </div>
+  <div>
+    <div class="profile-hero-name">{{ request.user.get_full_name|default:request.user.email }}</div>
+    <div class="profile-hero-email">{{ request.user.email }}</div>
+    <div style="display:flex;gap:20px;margin-top:14px">
+      <div style="text-align:center">
+        <div style="font-size:1.4rem;font-weight:800">{{ total_rewards }}</div>
+        <div style="font-size:0.75rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Total</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:1.4rem;font-weight:800">{{ active_rewards }}</div>
+        <div style="font-size:0.75rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.05em">Active</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="profile-tabs" role="tablist">
+  <button class="profile-tab active" data-tab="tab-profile" role="tab" aria-selected="true" id="btn-tab-profile">
+    👤 Profile
+  </button>
+  <button class="profile-tab" data-tab="tab-notifications" role="tab" aria-selected="false" id="btn-tab-notifications">
+    🔔 Notifications
+  </button>
+  <button class="profile-tab" data-tab="tab-security" role="tab" aria-selected="false" id="btn-tab-security">
+    🔒 Security
+  </button>
+</div>
+
+<!-- Tab: Profile -->
+<div class="tab-panel active" id="tab-profile" role="tabpanel" aria-labelledby="btn-tab-profile">
+  <div class="card">
+    <div class="card-header">
+      <h3>Personal Information</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate id="profileForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile" />
+
+        {% if profile_form.non_field_errors %}
+        <div class="alert alert-error" style="margin-bottom:20px" role="alert">
+          {{ profile_form.non_field_errors|join:", " }}
+        </div>
+        {% endif %}
+
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label for="{{ profile_form.first_name.id_for_label }}" class="form-label">First Name</label>
+            {{ profile_form.first_name }}
+            {% if profile_form.first_name.errors %}<div class="form-error">{{ profile_form.first_name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ profile_form.last_name.id_for_label }}" class="form-label">Last Name</label>
+            {{ profile_form.last_name }}
+            {% if profile_form.last_name.errors %}<div class="form-error">{{ profile_form.last_name.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" value="{{ request.user.email }}" class="form-input" disabled
+                   style="opacity:0.6;cursor:not-allowed" id="profile-email-display" />
+            <span class="form-hint">Email cannot be changed here.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Member Since</label>
+            <input type="text" value="{{ request.user.date_joined|date:'d M Y' }}" class="form-input" disabled
+                   style="opacity:0.6;cursor:not-allowed" id="profile-joined-display" />
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="profile-save-btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Notifications -->
+<div class="tab-panel" id="tab-notifications" role="tabpanel" aria-labelledby="btn-tab-notifications">
+  <div class="card">
+    <div class="card-header">
+      <h3>Notification Preferences</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate id="notifForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_notifications" />
+
+        {% if pref_form.non_field_errors %}
+        <div class="alert alert-error" style="margin-bottom:20px" role="alert">
+          {{ pref_form.non_field_errors|join:", " }}
+        </div>
+        {% endif %}
+
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:18px;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600;margin-bottom:3px">📧 Email Notifications</div>
+              <div style="font-size:0.82rem;color:var(--text-muted)">Receive reward expiry alerts via email</div>
+            </div>
+            {{ pref_form.email_enabled }}
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:18px;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600;margin-bottom:3px">📱 SMS Notifications</div>
+              <div style="font-size:0.82rem;color:var(--text-muted)">Receive reward alerts via SMS</div>
+            </div>
+            {{ pref_form.sms_enabled }}
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:18px;background:var(--surface);border-radius:var(--radius-md);border:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600;margin-bottom:3px">🔔 Push Notifications</div>
+              <div style="font-size:0.82rem;color:var(--text-muted)">Receive in-app push notifications</div>
+            </div>
+            {{ pref_form.push_enabled }}
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="notif-save-btn">Save Preferences</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: Security -->
+<div class="tab-panel" id="tab-security" role="tabpanel" aria-labelledby="btn-tab-security">
+  <div class="card">
+    <div class="card-header">
+      <h3>Change Password</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" novalidate id="passwordForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password" />
+
+        {% if pw_form.non_field_errors %}
+        <div class="alert alert-error" style="margin-bottom:20px" role="alert">
+          {{ pw_form.non_field_errors|join:", " }}
+        </div>
+        {% endif %}
+
+        <div style="max-width:480px;display:flex;flex-direction:column;gap:20px">
+
+          <div class="form-group">
+            <label for="{{ pw_form.old_password.id_for_label }}" class="form-label">
+              Current Password <span class="required">*</span>
+            </label>
+            {{ pw_form.old_password }}
+            {% if pw_form.old_password.errors %}<div class="form-error">{{ pw_form.old_password.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ pw_form.new_password.id_for_label }}" class="form-label">
+              New Password <span class="required">*</span>
+            </label>
+            {{ pw_form.new_password }}
+            {% if pw_form.new_password.errors %}<div class="form-error">{{ pw_form.new_password.errors|join:", " }}</div>{% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ pw_form.confirm_password.id_for_label }}" class="form-label">
+              Confirm New Password <span class="required">*</span>
+            </label>
+            {{ pw_form.confirm_password }}
+            {% if pw_form.confirm_password.errors %}<div class="form-error">{{ pw_form.confirm_password.errors|join:", " }}</div>{% endif %}
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="pw-save-btn">Change Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="card" style="margin-top:20px;border-color:var(--danger-bg)">
+    <div class="card-header" style="border-color:var(--danger-bg)">
+      <h3 style="color:var(--danger)">⚠️ Danger Zone</h3>
+    </div>
+    <div class="card-body">
+      <p style="font-size:0.875rem;color:var(--text-secondary);margin-bottom:16px">
+        Signing out will end your current session. All data remains intact.
+      </p>
+      <form method="post" action="{% url 'frontend:logout' %}" style="margin:0" id="profile-logout-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" id="profile-logout-btn">Sign Out Now</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// If a form had an error, open the appropriate tab
+{% if pw_form.errors %}
+document.querySelector('[data-tab="tab-security"]')?.click();
+{% elif pref_form.errors %}
+document.querySelector('[data-tab="tab-notifications"]')?.click();
+{% elif profile_form.errors %}
+document.querySelector('[data-tab="tab-profile"]')?.click();
+{% endif %}
+</script>
+{% endblock %}

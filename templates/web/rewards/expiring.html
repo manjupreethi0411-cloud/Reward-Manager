@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Expiring Rewards — Reward Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>⏰ Expiring Rewards</h1>
+    <p>Active rewards expiring within the selected window. Act before they're gone!</p>
+  </div>
+  <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary" id="expiring-add-btn">
+    ➕ Add Reward
+  </a>
+</div>
+
+<!-- Filter: days selector — options passed from view (expiry_day_options) -->
+<div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap" id="days-filter">
+  {% for d in expiry_day_options %}
+  <a href="?days={{ d }}"
+     class="btn {% if days == d %}btn-primary{% else %}btn-secondary{% endif %} btn-sm"
+     id="filter-days-{{ d }}">
+    {{ d }} days
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Expiring soon list -->
+{% if rewards %}
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header">
+    <h3>🔥 Expiring within {{ days }} days <span class="badge badge-active" style="margin-left:8px">{{ rewards|length }}</span></h3>
+  </div>
+  <div class="table-wrap" style="border:none;border-radius:0">
+    <table>
+      <thead>
+        <tr>
+          <th>Reward</th>
+          <th>Issuer</th>
+          <th>Type</th>
+          <th>Value</th>
+          <th>Expires</th>
+          <th>Days Left</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reward in rewards %}
+        <tr>
+          <td>
+            <div style="font-weight:600">{{ reward.title }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted)">{{ reward.category.get_name_display }}</div>
+          </td>
+          <td>{{ reward.issuer_name }}</td>
+          <td><span class="badge badge-{{ reward.reward_type|lower }}">{{ reward.get_reward_type_display }}</span></td>
+          <td>{% if reward.value %}<strong style="color:var(--primary)">₹{{ reward.value }}</strong>{% else %}—{% endif %}</td>
+          <td style="white-space:nowrap">{{ reward.expiry_date|date:"d M Y" }}</td>
+          <td>
+            {% with days_left=reward.expiry_date|timeuntil %}
+            <span class="days-badge {% if '1 day' in days_left or '2 day' in days_left %}urgent{% elif '7 day' in days_left %}warning{% else %}ok{% endif %}">
+              {{ days_left }}
+            </span>
+            {% endwith %}
+          </td>
+          <td>
+            <div style="display:flex;gap:8px">
+              <a href="{% url 'frontend:reward_detail' reward.pk %}" class="btn btn-secondary btn-sm" id="exp-view-{{ reward.pk }}">View</a>
+              <a href="{% url 'frontend:reward_edit' reward.pk %}" class="btn btn-secondary btn-sm" id="exp-edit-{{ reward.pk }}">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="margin-bottom:24px">
+  <div class="empty-state">
+    <div class="empty-state-icon">🎉</div>
+    <h3>No rewards expiring in {{ days }} days</h3>
+    <p>Great! All your active rewards are safe for now.</p>
+    <a href="{% url 'frontend:rewards_list' %}" class="btn btn-secondary" id="exp-back-btn">View All Rewards</a>
+  </div>
+</div>
+{% endif %}
+
+<!-- Already expired -->
+{% if already_expired %}
+<div class="card">
+  <div class="card-header">
+    <h3>✕ Recently Expired <span class="badge badge-expired" style="margin-left:8px">{{ already_expired|length }}</span></h3>
+  </div>
+  <div class="table-wrap" style="border:none;border-radius:0">
+    <table>
+      <thead>
+        <tr>
+          <th>Reward</th>
+          <th>Issuer</th>
+          <th>Value</th>
+          <th>Expired On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reward in already_expired %}
+        <tr style="opacity:0.75">
+          <td>
+            <div style="font-weight:600;color:var(--text-muted)">{{ reward.title }}</div>
+          </td>
+          <td>{{ reward.issuer_name }}</td>
+          <td>{% if reward.value %}₹{{ reward.value }}{% else %}—{% endif %}</td>
+          <td style="color:var(--danger)">{{ reward.expiry_date|date:"d M Y" }}</td>
+          <td>
+            <a href="{% url 'frontend:reward_detail' reward.pk %}" class="btn btn-secondary btn-sm" id="exp-expired-view-{{ reward.pk }}">View</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Parse "7,14,30,60,90" for the days filter links
+document.querySelectorAll('#days-filter a').forEach(a => {
+  const url = new URL(a.href);
+  const d = parseInt(url.searchParams.get('days'));
+  if (d === {{ days }}) a.classList.add('active');
+});
+</script>
+{% endblock %}

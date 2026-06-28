@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}My Rewards — Reward Manager{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>My Rewards</h1>
+    <p>{{ paginator.count }} reward{{ paginator.count|pluralize }} total</p>
+  </div>
+  <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary" id="list-add-btn">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
+    Add Reward
+  </a>
+</div>
+
+<!-- Filters -->
+<form method="get" class="filters-bar auto-submit" id="rewardsFilterForm">
+  <div class="search-input-wrap">
+    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+    </svg>
+    <input type="text" name="q" value="{{ current_filters.q }}" placeholder="Search rewards…"
+           class="form-input" style="padding-left:36px" id="rewards-search" />
+  </div>
+
+  <select name="status" class="form-select" style="width:auto;min-width:130px" id="filter-status">
+    <option value="">All Status</option>
+    {% for val, label in status_choices %}
+    <option value="{{ val }}" {% if current_filters.status == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="reward_type" class="form-select" style="width:auto;min-width:160px" id="filter-type">
+    <option value="">All Types</option>
+    {% for val, label in reward_types %}
+    <option value="{{ val }}" {% if current_filters.reward_type == val %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="category" class="form-select" style="width:auto;min-width:140px" id="filter-category">
+    <option value="">All Categories</option>
+    {% for cat in categories %}
+    <option value="{{ cat.id }}" {% if current_filters.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.get_name_display }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="order" class="form-select" style="width:auto;min-width:150px" id="filter-order">
+    <option value="-created_at" {% if current_filters.order == '-created_at' %}selected{% endif %}>Newest First</option>
+    <option value="created_at"  {% if current_filters.order == 'created_at' %}selected{% endif %}>Oldest First</option>
+    <option value="expiry_date" {% if current_filters.order == 'expiry_date' %}selected{% endif %}>Expiry (earliest)</option>
+    <option value="-expiry_date" {% if current_filters.order == '-expiry_date' %}selected{% endif %}>Expiry (latest)</option>
+    <option value="-value"      {% if current_filters.order == '-value' %}selected{% endif %}>Value (high→low)</option>
+    <option value="value"       {% if current_filters.order == 'value' %}selected{% endif %}>Value (low→high)</option>
+  </select>
+
+  <label style="display:flex;align-items:center;gap:6px;font-size:0.875rem;font-weight:500;cursor:pointer;white-space:nowrap">
+    <input type="checkbox" name="starred" value="1" class="form-checkbox" id="filter-starred"
+           {% if current_filters.starred == '1' %}checked{% endif %}
+           onchange="this.form.submit()">
+    ⭐ Starred only
+  </label>
+
+  <button type="submit" class="btn btn-primary btn-sm" id="filter-submit-btn">Filter</button>
+  <a href="{% url 'frontend:rewards_list' %}" class="btn btn-secondary btn-sm" id="filter-clear-btn">Clear</a>
+</form>
+
+<!-- Results -->
+{% if rewards %}
+<div class="rewards-grid" id="rewards-grid">
+  {% for reward in rewards %}
+  {% include 'partials/_reward_card.html' with reward=reward %}
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="pagination" aria-label="Rewards pagination">
+  {% if page_obj.has_previous %}
+  <a href="?{% for k,v in current_filters.items %}{% if v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+     class="page-link" aria-label="Previous page">← Prev</a>
+  {% else %}
+  <span class="page-link disabled">← Prev</span>
+  {% endif %}
+
+  {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <span class="page-link active" aria-current="page">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+    <a href="?{% for k,v in current_filters.items %}{% if v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ num }}" class="page-link">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+
+  {% if page_obj.has_next %}
+  <a href="?{% for k,v in current_filters.items %}{% if v %}{{ k }}={{ v }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+     class="page-link" aria-label="Next page">Next →</a>
+  {% else %}
+  <span class="page-link disabled">Next →</span>
+  {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <div class="empty-state">
+    <div class="empty-state-icon">🔍</div>
+    <h3>No rewards found</h3>
+    <p>Try adjusting your filters or add a new reward.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="{% url 'frontend:rewards_list' %}" class="btn btn-secondary" id="list-clear-empty-btn">Clear Filters</a>
+      <a href="{% url 'frontend:reward_add' %}" class="btn btn-primary" id="list-add-empty-btn">Add Reward</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ reward.title }} — Reward Manager{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<div class="detail-hero">
+  <div class="detail-hero-content">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+      <div>
+        <div class="detail-hero-label">
+          {% if reward.reward_type == 'CASHBACK' %}💵 Cashback
+          {% elif reward.reward_type == 'COUPON' %}🏷️ Coupon
+          {% elif reward.reward_type == 'GIFT_CARD' %}🎁 Gift Card
+          {% elif reward.reward_type == 'LOYALTY_POINTS' %}⭐ Loyalty Points
+          {% else %}📱 Payment App Reward{% endif %}
+          · {{ reward.issuer_name }}
+        </div>
+        <h1>{{ reward.title }}</h1>
+        <div class="detail-hero-sub">{{ reward.category.get_name_display }}</div>
+        {% if reward.value %}
+        <div class="detail-hero-value">₹{{ reward.value }}</div>
+        {% endif %}
+      </div>
+
+      <!-- Badges -->
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <span class="badge badge-{{ reward.status|lower }}" style="font-size:0.8rem;padding:6px 14px">
+          {% if reward.status == 'ACTIVE' %}● Active
+          {% elif reward.status == 'USED' %}✓ Used
+          {% else %}✕ Expired{% endif %}
+        </span>
+        {% if reward.is_starred %}
+        <span style="font-size:0.85rem;opacity:0.85">⭐ Starred</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Actions row -->
+    <div class="detail-actions" style="margin-top:20px">
+      <a href="{% url 'frontend:reward_edit' reward.pk %}" class="btn btn-secondary" id="detail-edit-btn"
+         style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:#fff">
+        ✏️ Edit
+      </a>
+
+      {% if reward.status == 'ACTIVE' %}
+      <form method="post" style="margin:0" id="markUsedForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mark_used" />
+        <button type="submit" class="btn btn-success" id="detail-mark-used-btn">✓ Mark as Used</button>
+      </form>
+      {% endif %}
+
+      {% if reward.url %}
+      <a href="{{ reward.url }}" target="_blank" rel="noopener noreferrer"
+         class="btn btn-secondary" id="detail-redeem-btn"
+         style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:#fff">
+        🔗 Redeem
+      </a>
+      {% endif %}
+
+      <form method="post" style="margin:0" id="deleteRewardForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete" />
+        <button type="button" class="btn btn-danger" id="detail-delete-btn"
+                data-confirm-delete="deleteRewardForm"
+                style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.5);color:#fca5a5">
+          🗑️ Delete
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Detail grid -->
+<div class="detail-grid">
+
+  <!-- Left: Info + Code -->
+  <div style="display:flex;flex-direction:column;gap:24px">
+
+    <!-- Key details -->
+    <div class="card">
+      <div class="card-header"><h3>📋 Reward Details</h3></div>
+      <div class="card-body">
+        <div class="info-list">
+
+          <div class="info-row">
+            <span class="info-label">Title</span>
+            <span class="info-value">{{ reward.title }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Issuer</span>
+            <span class="info-value">{{ reward.issuer_name }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Type</span>
+            <span class="info-value">{{ reward.get_reward_type_display }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Category</span>
+            <span class="info-value">{{ reward.category.get_name_display }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value">
+              <span class="badge badge-{{ reward.status|lower }}">{{ reward.get_status_display }}</span>
+            </span>
+          </div>
+
+          {% if reward.value %}
+          <div class="info-row">
+            <span class="info-label">Value</span>
+            <span class="info-value" style="font-weight:700;color:var(--primary)">₹{{ reward.value }}</span>
+          </div>
+          {% endif %}
+
+          {% if reward.issue_date %}
+          <div class="info-row">
+            <span class="info-label">Issue Date</span>
+            <span class="info-value">{{ reward.issue_date|date:"d M Y" }}</span>
+          </div>
+          {% endif %}
+
+          {% if reward.expiry_date %}
+          <div class="info-row">
+            <span class="info-label">Expiry Date</span>
+            <span class="info-value"
+                  style="{% if reward.is_expired %}color:var(--danger);{% endif %}">
+              {{ reward.expiry_date|date:"d M Y, H:i" }}
+              {% if reward.is_expired %} <small>(Expired)</small>{% endif %}
+            </span>
+          </div>
+          {% endif %}
+
+          {% if reward.loyalty_program_name %}
+          <div class="info-row">
+            <span class="info-label">Program</span>
+            <span class="info-value">{{ reward.loyalty_program_name }}</span>
+          </div>
+          {% endif %}
+
+          {% if reward.url %}
+          <div class="info-row">
+            <span class="info-label">URL</span>
+            <span class="info-value">
+              <a href="{{ reward.url }}" target="_blank" rel="noopener" style="word-break:break-all">
+                {{ reward.url|truncatechars:50 }}
+              </a>
+            </span>
+          </div>
+          {% endif %}
+
+          {% if reward.description %}
+          <div class="info-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+            <span class="info-label">Description</span>
+            <span class="info-value" style="text-align:left;color:var(--text-secondary)">{{ reward.description }}</span>
+          </div>
+          {% endif %}
+
+          <div class="info-row">
+            <span class="info-label">Added on</span>
+            <span class="info-value">{{ reward.created_at|date:"d M Y, H:i" }}</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Secure codes card -->
+    {% if reward.encrypted_code or reward.encrypted_pin %}
+    <div class="card">
+      <div class="card-header"><h3>🔐 Secure Codes</h3></div>
+      <div class="card-body">
+
+        {% if reward.encrypted_code %}
+        <div class="info-row">
+          <span class="info-label">Reward Code</span>
+          <div class="info-value code-reveal">
+            <span class="code-hidden d-none" id="codeHidden">••••••••</span>
+            <span class="code-text d-none" id="codeText">{{ reward.code }}</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary btn-sm reveal-btn" id="codeRevealBtn"
+                      data-target="codeText" data-hidden="codeHidden">Reveal</button>
+              <button class="btn btn-secondary btn-sm" data-copy="codeText" id="codeCopyBtn">Copy</button>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if reward.encrypted_pin %}
+        <div class="info-row">
+          <span class="info-label">PIN</span>
+          <div class="info-value code-reveal">
+            <span class="code-hidden" id="pinHidden">••••</span>
+            <span class="code-text d-none" id="pinText">{{ reward.pin }}</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-secondary btn-sm reveal-btn" id="pinRevealBtn"
+                      data-target="pinText" data-hidden="pinHidden">Reveal</button>
+              <button class="btn btn-secondary btn-sm" data-copy="pinText" id="pinCopyBtn">Copy</button>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+    {% endif %}
+
+  </div><!-- /.detail left -->
+
+  <!-- Right: Audit log + expiry indicator -->
+  <div style="display:flex;flex-direction:column;gap:24px">
+
+    <!-- Expiry indicator -->
+    {% if reward.expiry_date and reward.status == 'ACTIVE' %}
+    <div class="card" data-expiry="{{ reward.expiry_date|date:'c' }}"
+         {% if reward.issue_date %}data-issued="{{ reward.issue_date|date:'c' }}"{% endif %}>
+      <div class="card-header"><h3>⏰ Expiry Countdown</h3></div>
+      <div class="card-body">
+        <div style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:10px">
+          Expires on <strong style="color:var(--text-primary)">{{ reward.expiry_date|date:"d M Y" }}</strong>
+        </div>
+        <div class="expiry-bar">
+          <div class="expiry-bar-fill" style="width:50%"></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Audit log -->
+    <div class="card">
+      <div class="card-header"><h3>📜 Activity Log</h3></div>
+      <div class="card-body" style="padding:0 20px">
+        {% if audit_logs %}
+        <div class="audit-log-list">
+          {% for log in audit_logs %}
+          <div class="audit-log-item">
+            <div class="audit-dot {{ log.action }}"></div>
+            <div style="flex:1">
+              <div style="font-weight:600;color:var(--text-primary)">{{ log.get_action_display }}</div>
+              <div style="color:var(--text-muted);font-size:0.78rem;margin-top:2px">
+                {{ log.timestamp|date:"d M Y, H:i" }} · {{ log.user.email|default:"System" }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:30px 0">
+          <p>No activity recorded yet.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div><!-- /.detail right -->
+</div><!-- /.detail-grid -->
+
+{% endblock %}
