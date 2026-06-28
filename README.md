@@ -44,7 +44,7 @@ Upcoming Expiring Rewards
 
 Reminder-ready architecture
 
-🔒 Security
+Security
 Django Authentication
 
 Password Hashing
